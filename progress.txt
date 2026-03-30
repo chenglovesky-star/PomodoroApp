@@ -85,3 +85,12 @@
   - reset() 需同时调用 removePendingNotificationRequests + removeDeliveredNotifications；trigger:nil 通知立即进入 delivered 队列，仅清 pending 无法清除已投递通知，多次完成会导致通知叠加
   - scenePhase .inactive 不应触发 handleEnterBackground：控制中心/来电等场景会产生 .inactive → .active 序列，若 .inactive 记录 backgroundEntryDate，回到 .active 时会错误扣减时间；正确方案是只有 .background 触发 handleEnterBackground，.inactive 走 default:break
 ---
+
+## [2026-03-30 18:30] - US-004: 主界面：圆形进度计时器 + 任务标签选择 - Tier1:pass Tier2:7.75 Tier3:pass
+- 实现内容：CircularTimerView（Circle+trim+stroke 圆形进度，SessionType 枚举，MM:SS 格式，Dynamic Type .largeTitle monospaced）；TagPickerView（@Query横向滚动，选中高亮，无标签选项，Color(hex:)校验，空列表提示）；HomeTab（@State selectedTag + @Query onChange悬空引用保护）；ControlBarPlaceholder（US-005占位）；ContentView 替换 MainPlaceholderView → NavigationStack+TabView 结构
+- 修改文件：Sources/PomodoroFocus/CircularTimerView.swift（新建），Sources/PomodoroFocus/TagPickerView.swift（新建），Sources/PomodoroFocus/ContentView.swift（HomeTab+ControlBarPlaceholder），Sources/PomodoroFocusUITests/PomodoroFocusUITests.swift（更新断言）
+- Learnings（必须填写 ≥2 条）：
+  - SwiftData @Model 对象被删除后访问属性存在版本依赖风险；安全的悬空引用保护方案是在 @State 持有 @Model 的 View 中添加 @Query + .onChange，用 contains(where: { $0.persistentModelID == selected.persistentModelID }) 比较 persistentModelID（值类型，删除后仍安全），而非访问 @Model 实例属性
+  - 空状态提示文字的措辞不应使用动作指令（「前往设置」）除非绑定了实际导航，否则会造成 UX 误导；阶段性 TODO 提示应用中性措辞（如「暂无标签」）而非暗示可交互
+  - Color(hex:) 扩展应放在独立文件（Extensions/Color+Hex.swift）而非 View 文件中，以便多个 View 复用；guard hex.count == 6 + scanHexInt64 双重校验是最小防御方案
+---

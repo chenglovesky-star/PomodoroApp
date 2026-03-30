@@ -96,12 +96,12 @@
       "dependsOn": [
         "US-003"
       ],
-      "passes": false,
+      "passes": true,
       "retryCount": 0,
-      "tier1": null,
-      "tier2": null,
-      "tier3": null,
-      "notes": ""
+      "tier1": "pass",
+      "tier2": "7.75",
+      "tier3": "pass(major×2: onChange访问已删除@Model版本依赖/空标签Text误导性UX)",
+      "notes": "圆形计时器+TagPicker+HomeTab，悬空引用onChange保护，Dynamic Type修复，Color(hex:)校验。US-005前注意：ControlBarPlaceholder action为空TODO需替换"
     },
     {
       "id": "US-005",
