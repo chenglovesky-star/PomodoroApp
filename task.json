@@ -119,12 +119,12 @@
       "dependsOn": [
         "US-004"
       ],
-      "passes": false,
+      "passes": true,
       "retryCount": 0,
-      "tier1": null,
-      "tier2": null,
-      "tier3": null,
-      "notes": ""
+      "tier1": "pass",
+      "tier2": "7.77",
+      "tier3": "pass(major×2: skip在finished状态丢失计数/async竞争场景测试缺失)",
+      "notes": "ControlBarView+会话循环+触觉反馈，autoAdvanceTask取消机制，skipToNextSession，reset归零sessionCount/Type。US-006前注意：skip在.finished状态可被调用，应添加guard"
     },
     {
       "id": "US-006",

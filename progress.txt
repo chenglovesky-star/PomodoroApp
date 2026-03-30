@@ -94,3 +94,12 @@
   - 空状态提示文字的措辞不应使用动作指令（「前往设置」）除非绑定了实际导航，否则会造成 UX 误导；阶段性 TODO 提示应用中性措辞（如「暂无标签」）而非暗示可交互
   - Color(hex:) 扩展应放在独立文件（Extensions/Color+Hex.swift）而非 View 文件中，以便多个 View 复用；guard hex.count == 6 + scanHexInt64 双重校验是最小防御方案
 ---
+
+## [2026-03-30 19:30] - US-005: 控制栏：开始/暂停/重置 + 会话循环状态机 - Tier1:pass Tier2:7.77 Tier3:pass
+- 实现内容：ControlBarView（开始/暂停/重置/跳过四按钮，sessionCountLabel 根据 sessionType 显示不同文案，触觉反馈）；TimerEngine 新增 sessionCount、currentSessionType @Published、advanceSession()、skip()（idle守卫）、skipToNextSession()（autoAdvanceTask取消+推进+start）；finishSession() 延迟1.5s自动切换会话+触觉反馈；reset() 归零 sessionCount/currentSessionType/totalSeconds；SessionCycleTests 5个测试
+- 修改文件：Sources/PomodoroFocus/ControlBarView.swift（新建），Sources/PomodoroFocus/TimerEngine.swift（sessionCount+advanceSession+skip+skipToNextSession+autoAdvanceTask），Sources/PomodoroFocus/CircularTimerView.swift（SessionType.defaultDuration扩展），Sources/PomodoroFocus/ContentView.swift（ControlBarPlaceholder→ControlBarView），Sources/PomodoroFocusTests/PomodoroFocusTests.swift（SessionCycleTests）
+- Learnings（必须填写 ≥2 条）：
+  - 当 View 按钮的 .finished 分支与 TimerEngine 内部 Task 自动推进逻辑并存时，必须为 Task 保存句柄（autoAdvanceTask: Task<Void, Never>?），以便手动点击时能 cancel 自动推进任务，防止双重 advanceSession；guard sessionState == .finished 与 @MainActor 串行执行构成双重防线
+  - reset() 必须同步清理 autoAdvanceTask（cancel + nil）以及所有会话状态字段（currentSessionType/sessionCount/totalSeconds/remainingSeconds），否则 break 中重置只能回到 5:00 而非 25:00
+  - UIImpactFeedbackGenerator 每次操作创建新实例是 iOS 开发常见模式，@MainActor 保证主线程安全；Task { @MainActor in } 内可安全调用 UIKit 振动 API
+---
