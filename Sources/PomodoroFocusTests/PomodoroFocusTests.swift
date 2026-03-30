@@ -338,6 +338,43 @@ final class SessionCycleTests: XCTestCase {
         XCTAssertEqual(engine.currentSessionType, .shortBreak, "focus skip 后应切换为 shortBreak")
     }
 
+    // 测试 skip() 在 idle 状态下无效（M-01 修复）
+    func testSkipIdleGuard() {
+        let engine = TimerEngine(notificationCenter: MockNotificationCenter())
+        XCTAssertEqual(engine.sessionState, .idle)
+        engine.skip()
+        // idle 状态下 skip 应为 no-op，sessionType 和 sessionCount 不变
+        XCTAssertEqual(engine.sessionState, .idle)
+        XCTAssertEqual(engine.currentSessionType, .focus)
+        XCTAssertEqual(engine.sessionCount, 0)
+    }
+
+    // 测试 skipToNextSession() 在 finished 状态下正确推进（C-01 修复）
+    func testSkipToNextSessionFromFinished() {
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
+        // 先让引擎完成一个会话
+        engine.finishSession()
+        XCTAssertEqual(engine.sessionState, .finished)
+        XCTAssertEqual(engine.sessionCount, 0)
+
+        // 调用 skipToNextSession 应推进到下一个会话并开始计时
+        engine.skipToNextSession()
+        XCTAssertEqual(engine.sessionState, .running, "skipToNextSession 后应为 running")
+        XCTAssertEqual(engine.sessionCount, 1, "focus 完成后 sessionCount 应增加到 1")
+        XCTAssertEqual(engine.currentSessionType, .shortBreak, "第1个番茄后应进入短休息")
+    }
+
+    // 测试 skipToNextSession() 在非 finished 状态下无效
+    func testSkipToNextSessionNoOpWhenNotFinished() {
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
+        engine.start()
+        XCTAssertEqual(engine.sessionState, .running)
+        engine.skipToNextSession()
+        // running 状态下调用应为 no-op
+        XCTAssertEqual(engine.sessionState, .running)
+        XCTAssertEqual(engine.sessionCount, 0)
+    }
+
     // 测试 advanceSession(countCompleted: true) 增加 sessionCount（仅专注时）
     func testAdvanceSessionCountCompletedTrue() {
         let engine = TimerEngine(notificationCenter: MockNotificationCenter())

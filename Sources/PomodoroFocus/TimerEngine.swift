@@ -41,6 +41,7 @@ final class TimerEngine: ObservableObject {
     private var timer: AnyCancellable?
     private var backgroundEntryDate: Date?
     private let notificationCenter: any NotificationScheduling
+    private var autoAdvanceTask: Task<Void, Never>?
 
     // MARK: - Init（依赖注入 notificationCenter，方便测试时 mock）
 
@@ -75,6 +76,8 @@ final class TimerEngine: ObservableObject {
 
     func reset() {
         timer?.cancel()
+        autoAdvanceTask?.cancel()
+        autoAdvanceTask = nil
         sessionState = .idle
         currentSessionType = .focus
         sessionCount = 0
@@ -87,12 +90,24 @@ final class TimerEngine: ObservableObject {
 
     /// 跳过当前会话，不计入 sessionCount
     func skip() {
+        guard sessionState != .idle else { return }
         timer?.cancel()
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["focus-complete"])
         notificationCenter.removeDeliveredNotifications(withIdentifiers: ["focus-complete"])
         backgroundEntryDate = nil
         advanceSession(countCompleted: false)
         sessionState = .idle
+    }
+
+    /// 在 .finished 状态下手动跳过自动推进延迟，直接进入下一个会话
+    func skipToNextSession() {
+        guard sessionState == .finished else { return }
+        autoAdvanceTask?.cancel()
+        autoAdvanceTask = nil
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        advanceSession(countCompleted: true)
+        sessionState = .idle
+        start()
     }
 
     // MARK: - 后台保活
@@ -145,11 +160,12 @@ final class TimerEngine: ObservableObject {
         sessionState = .finished
         scheduleNotification()
         // 延迟 1.5 秒后自动进入下一个会话
-        Task { @MainActor [weak self] in
+        autoAdvanceTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(1.5))
             guard let self, self.sessionState == .finished else { return }
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()  // 会话切换触觉反馈
             self.advanceSession(countCompleted: true)
+            self.sessionState = .idle
             self.start()
         }
     }

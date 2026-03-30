@@ -96,8 +96,7 @@ struct ControlBarView: View {
         case .paused:
             timerEngine.resume()
         case .finished:
-            timerEngine.reset()
-            timerEngine.start()
+            timerEngine.skipToNextSession()
         }
     }
 
