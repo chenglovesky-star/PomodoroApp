@@ -1,26 +1,23 @@
 import Foundation
 import SwiftData
-import SwiftUI
 
-// MARK: - FocusSession
-
-/// 记录一次专注会话
+/// 占位 Model：FocusSession（US-002 中将完整实现）
 @Model
 final class FocusSession {
     var id: UUID
-    var duration: Int           // 秒，必须 > 0
+    var duration: Int          // 秒
     var completedAt: Date
     var isCompleted: Bool
     var tag: Tag?
 
     init(
-        duration: Int,
+        id: UUID = UUID(),
+        duration: Int = 1500,
         completedAt: Date = Date(),
         isCompleted: Bool = false,
         tag: Tag? = nil
     ) {
-        precondition(duration > 0, "duration must be greater than 0")
-        self.id = UUID()
+        self.id = id
         self.duration = duration
         self.completedAt = completedAt
         self.isCompleted = isCompleted
@@ -28,9 +25,7 @@ final class FocusSession {
     }
 }
 
-// MARK: - Tag
-
-/// 专注标签，用于分类专注会话
+/// 占位 Model：Tag（US-002 中将完整实现）
 @Model
 final class Tag {
     var id: UUID
@@ -40,58 +35,31 @@ final class Tag {
     var sessions: [FocusSession]
 
     init(
-        name: String,
+        id: UUID = UUID(),
+        name: String = "",
         colorHex: String = "#FF6B6B"
     ) {
-        let trimmed = name.trimmingCharacters(in: .whitespaces)
-        precondition(!trimmed.isEmpty, "Tag name cannot be empty")
-        self.id = UUID()
-        self.name = trimmed
+        self.id = id
+        self.name = name
         self.colorHex = colorHex
         self.sessions = []
     }
 }
 
-// MARK: - DailyRecord
-
-/// 每日专注汇总（date 字段唯一约束）
+/// 占位 Model：DailyRecord（US-002 中将完整实现）
 @Model
 final class DailyRecord {
-    @Attribute(.unique) var date: Date
+    var date: Date
     var totalFocusSeconds: Int
     var sessionsCount: Int
 
     init(
-        date: Date,
+        date: Date = Date(),
         totalFocusSeconds: Int = 0,
         sessionsCount: Int = 0
     ) {
         self.date = date
-        self.totalFocusSeconds = max(0, totalFocusSeconds)
-        self.sessionsCount = max(0, sessionsCount)
+        self.totalFocusSeconds = totalFocusSeconds
+        self.sessionsCount = sessionsCount
     }
-}
-
-// MARK: - Preview
-
-#Preview("Models Preview") {
-    let schema = Schema([FocusSession.self, Tag.self, DailyRecord.self])
-    let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: schema, configurations: [config])
-    let context = container.mainContext
-
-    let tag = Tag(name: "工作", colorHex: "#4A90E2")
-    let session = FocusSession(duration: 1500, isCompleted: true, tag: tag)
-    context.insert(tag)
-    context.insert(session)
-
-    return VStack(alignment: .leading, spacing: 12) {
-        Text("Tag: \(tag.name)")
-            .font(.headline)
-        Text("Session: \(session.duration)s, completed: \(session.isCompleted)")
-            .font(.body)
-            .foregroundStyle(.secondary)
-    }
-    .padding()
-    .modelContainer(container)
 }
