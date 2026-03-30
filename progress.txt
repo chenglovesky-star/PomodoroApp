@@ -1,0 +1,15 @@
+## Codebase Patterns
+（执行过程中持续更新，子 Agent 每次完成故事后追加 Learnings）
+
+- 项目名：PomodoroFocus
+- Bundle ID：com.leicheng9.PomodoroFocus
+- 最低部署目标：iOS 17.0
+- Swift 版本：6.0
+- 模拟器：iPhone 17 Pro
+- 构建工具：xcodegen
+- 数据层：SwiftData（@Model, @Query, @Environment(\.modelContext)）
+- 状态管理：@MainActor ObservableObject（TimerEngine）
+- 图表：Swift Charts（iOS 16+）
+- IAP：StoreKit 2
+
+---

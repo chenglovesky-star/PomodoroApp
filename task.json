@@ -1,0 +1,208 @@
+{
+  "project": "PomodoroFocus",
+  "type": "build",
+  "platform": "ios",
+  "risk": "high",
+  "budget": 60,
+  "branchName": "long-task/pomodoro-focus-app",
+  "evaluator": {
+    "tier1": "maestro-mobile",
+    "tier2": "swiftui-rubric",
+    "tier3": "adversarial",
+    "threshold": 7.0,
+    "note": "iOS生产级App，强制三层评估"
+  },
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "项目脚手架：xcodegen + SwiftData + 基础结构",
+      "description": "As a developer, I want a properly bootstrapped iOS project with xcodegen, SwiftData, and app entry point so that subsequent stories have a solid foundation.",
+      "acceptanceCriteria": [
+        "xcodegen project.yml 包含主 target、单元测试 target、UI测试 target",
+        "GENERATE_INFOPLIST_FILE: YES 已配置，UITest target 中 BUNDLE_LOADER 和 TEST_HOST 为空字符串",
+        "App entry point（PomodoroFocusApp.swift）使用 try ModelContainer 初始化，do-catch 处理失败，检测 --uitesting 参数使用 isStoredInMemoryOnly",
+        "xcodebuild build 编译通过，无 error",
+        "git commit 包含 project.yml、Sources 目录结构"
+      ],
+      "priority": 1,
+      "parallel": false,
+      "dependsOn": [],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "数据模型：FocusSession + Tag + DailyRecord + 单元测试",
+      "description": "As a developer, I want SwiftData models for FocusSession, Tag, and DailyRecord with full unit test coverage so that the data layer is reliable.",
+      "acceptanceCriteria": [
+        "FocusSession @Model：id, duration(Int秒), completedAt(Date), tag(Tag?), isCompleted(Bool)",
+        "Tag @Model：id, name(String), colorHex(String), sessions([FocusSession])",
+        "DailyRecord @Model：date(Date), totalFocusSeconds(Int), sessionsCount(Int)",
+        "单元测试覆盖：创建/查询/更新/删除 FocusSession，Tag 关联，使用 isStoredInMemoryOnly ModelContainer",
+        "所有单元测试通过（xcodebuild test）"
+      ],
+      "priority": 2,
+      "parallel": false,
+      "dependsOn": ["US-001"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "计时器引擎：TimerEngine + 后台保活 + 本地通知",
+      "description": "As a user, I want the timer to continue counting down when the app is backgrounded and receive a notification when the session ends.",
+      "acceptanceCriteria": [
+        "TimerEngine（@MainActor class ObservableObject）：状态机 idle/running/paused/finished，支持 start/pause/resume/reset",
+        "后台保活：进入后台时记录 backgroundEntryDate，回到前台时根据时间差修正剩余时间",
+        "本地通知：专注结束时推送 UNUserNotificationCenter 通知，标题「专注完成 🎉」",
+        "通知权限申请在 App 启动时请求（UNUserNotificationCenter.requestAuthorization）",
+        "单元测试覆盖计时器状态机转换（不含通知，mock 注入）"
+      ],
+      "priority": 3,
+      "parallel": false,
+      "dependsOn": ["US-002"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "主界面：圆形进度计时器 + 任务标签选择",
+      "description": "As a user, I want to see a beautiful circular countdown timer with the ability to select a focus tag before starting.",
+      "acceptanceCriteria": [
+        "CircularTimerView：圆形进度条（使用 Circle + trim + stroke），显示剩余时间（MM:SS格式）",
+        "当前会话类型标签（专注/短休息/长休息）显示在计时器上方",
+        "TagPickerView：横向滚动标签选择器，支持选中高亮，未选中时显示「无标签」",
+        "使用语义字体（.title/.body），无硬编码颜色，支持 Dark Mode",
+        "Maestro 测试：App 启动后主界面可见，计时器显示「25:00」，标签选择器可见"
+      ],
+      "priority": 4,
+      "parallel": false,
+      "dependsOn": ["US-003"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "控制栏：开始/暂停/重置 + 会话循环状态机",
+      "description": "As a user, I want start/pause/reset controls and automatic session cycling (4 pomodoros → long break).",
+      "acceptanceCriteria": [
+        "ControlBarView：开始/暂停按钮（状态切换）、重置按钮、跳过按钮",
+        "会话循环：专注(25min)→短休息(5min)→专注→短休息→专注→短休息→专注→长休息(15min)，循环往复",
+        "sessionCount 计数器显示「第 N 个番茄」",
+        "会话切换时有触觉反馈（UIImpactFeedbackGenerator）",
+        "Maestro 测试：点击开始按钮后计时器开始倒计时，暂停后时间停止，重置后回到25:00"
+      ],
+      "priority": 5,
+      "parallel": false,
+      "dependsOn": ["US-004"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "统计页：今日专注 + 本周图表（Swift Charts）",
+      "description": "As a user, I want to see my focus statistics with charts to understand my productivity patterns.",
+      "acceptanceCriteria": [
+        "StatisticsView：今日番茄数、今日专注时长（小时）、本周每日番茄数柱状图（Swift Charts BarChart）",
+        "按 Tag 分类显示今日专注分布（TagBreakdownView，圆饼图或横条图）",
+        "数据从 SwiftData @Query 实时获取",
+        "空状态：「今天还没有专注记录，开始第一个番茄吧！」",
+        "Maestro 测试：切换到统计 Tab 后统计页可见"
+      ],
+      "priority": 6,
+      "parallel": true,
+      "dependsOn": ["US-003"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "设置页：时长配置 + 声音开关 + 主题色",
+      "description": "As a user, I want to customize work/break durations, toggle sounds, and pick an accent color.",
+      "acceptanceCriteria": [
+        "SettingsView：专注时长（15/20/25/30/45/60 min Picker）、短休息（3/5/10 min）、长休息（10/15/20 min）",
+        "声音开关（Toggle），关闭后完成时不播放声音",
+        "主题色选择（6个预设色，用 ColorPicker 或自定义色块，存入 @AppStorage）",
+        "所有设置通过 @AppStorage 持久化",
+        "Maestro 测试：进入设置页，修改专注时长后返回主界面，计时器显示新时长"
+      ],
+      "priority": 7,
+      "parallel": true,
+      "dependsOn": ["US-003"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "买断制 IAP + 付费墙：完整历史解锁",
+      "description": "As a business, I want a one-time purchase IAP that unlocks full history and analytics.",
+      "acceptanceCriteria": [
+        "StoreKit 2 集成（Product.products，Transaction.updates 监听）",
+        "PaywallView：展示付费功能列表（完整历史/详细图表/主题色/iCloud），购买按钮「¥18 解锁全部」",
+        "免费用户只能查看最近 7 天统计，付费用户无限制",
+        "恢复购买按钮（restorePurchases）",
+        "沙盒测试下购买流程可完整走通（Xcode StoreKit 配置文件）",
+        "isPremium 状态通过 @AppStorage 持久化"
+      ],
+      "priority": 8,
+      "parallel": false,
+      "dependsOn": ["US-006", "US-007"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "App 图标 + 启动页 + 无障碍 + 上架准备",
+      "description": "As a product, I want proper app icon, launch screen, accessibility labels, and App Store metadata.",
+      "acceptanceCriteria": [
+        "AppIcon：提供 1024x1024 SVG/PNG 主图标（可用 SF Symbol 组合，番茄主题），xcodegen 配置 ASSETCATALOG_COMPILER_APPICON_NAME",
+        "LaunchScreen：纯色背景 + App 名称，无加载时白屏",
+        "所有可交互元素有 accessibilityLabel + accessibilityHint",
+        "所有按钮有 .isButton accessibility trait",
+        "Info.plist 包含 NSUserNotificationsUsageDescription",
+        "xcodebuild archive 无 error（上架前最终验证）"
+      ],
+      "priority": 9,
+      "parallel": false,
+      "dependsOn": ["US-008"],
+      "passes": false,
+      "retryCount": 0,
+      "tier1": null,
+      "tier2": null,
+      "tier3": null,
+      "notes": ""
+    }
+  ]
+}
