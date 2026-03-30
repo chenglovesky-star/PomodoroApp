@@ -44,9 +44,10 @@ struct ContentView: View {
 
 // MARK: - HomeTab
 
-/// 主页 Tab：圆形计时器 + 标签选择器 + 占位控制栏
+/// 主页 Tab：圆形计时器 + 标签选择器 + 控制栏
 @MainActor
 struct HomeTab: View {
+    @EnvironmentObject private var timerEngine: TimerEngine
     @State private var selectedTag: Tag? = nil
     @Query private var tags: [Tag]
 
@@ -54,8 +55,8 @@ struct HomeTab: View {
         VStack(spacing: 0) {
             Spacer()
 
-            // 圆形进度计时器
-            CircularTimerView()
+            // 圆形进度计时器（会话类型跟随引擎状态）
+            CircularTimerView(sessionType: timerEngine.currentSessionType)
 
             Spacer()
 
@@ -63,8 +64,8 @@ struct HomeTab: View {
             TagPickerView(selectedTag: $selectedTag)
                 .accessibilityIdentifier("tagPicker")
 
-            // 占位控制栏（US-005 实现）
-            ControlBarPlaceholder()
+            // 控制栏
+            ControlBarView()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
@@ -73,50 +74,6 @@ struct HomeTab: View {
                 selectedTag = nil
             }
         }
-    }
-}
-
-// MARK: - ControlBarPlaceholder
-
-/// 控制栏占位（US-005 实现时替换）
-@MainActor
-struct ControlBarPlaceholder: View {
-    var body: some View {
-        HStack(spacing: 32) {
-            Spacer()
-
-            Button {
-                // TODO: US-005 实现
-            } label: {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityLabel("重置计时器")
-
-            Button {
-                // TODO: US-005 实现
-            } label: {
-                Image(systemName: "play.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(Color.accentColor)
-            }
-            .accessibilityLabel("开始专注")
-            .accessibilityIdentifier("startButton")
-
-            Button {
-                // TODO: US-005 实现
-            } label: {
-                Image(systemName: "forward.end.fill")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityLabel("跳过当前会话")
-
-            Spacer()
-        }
-        .padding(.vertical, 24)
-        .padding(.bottom, 16)
     }
 }
 

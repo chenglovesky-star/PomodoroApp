@@ -9,6 +9,19 @@ enum SessionType: String {
     case longBreak = "长休息"
 }
 
+// MARK: - SessionType Extension
+
+extension SessionType {
+    /// 各会话类型默认时长（秒）
+    var defaultDuration: Int {
+        switch self {
+        case .focus: return 25 * 60
+        case .shortBreak: return 5 * 60
+        case .longBreak: return 15 * 60
+        }
+    }
+}
+
 // MARK: - CircularTimerView
 
 /// 圆形进度计时器 View

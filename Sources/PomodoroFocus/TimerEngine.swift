@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import UserNotifications
+import UIKit
 
 // MARK: - NotificationScheduling Protocol
 
@@ -32,6 +33,8 @@ final class TimerEngine: ObservableObject {
     @Published var sessionState: SessionState = .idle
     @Published var remainingSeconds: Int
     @Published var totalSeconds: Int
+    @Published var sessionCount: Int = 0          // 已完成的番茄数
+    @Published var currentSessionType: SessionType = .focus  // 当前会话类型
 
     // MARK: - Private
 
@@ -77,6 +80,16 @@ final class TimerEngine: ObservableObject {
         backgroundEntryDate = nil
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["focus-complete"])
         notificationCenter.removeDeliveredNotifications(withIdentifiers: ["focus-complete"])
+    }
+
+    /// 跳过当前会话，不计入 sessionCount
+    func skip() {
+        timer?.cancel()
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: ["focus-complete"])
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: ["focus-complete"])
+        backgroundEntryDate = nil
+        advanceSession(countCompleted: false)
+        sessionState = .idle
     }
 
     // MARK: - 后台保活
@@ -128,6 +141,32 @@ final class TimerEngine: ObservableObject {
         timer?.cancel()
         sessionState = .finished
         scheduleNotification()
+        // 延迟 1.5 秒后自动进入下一个会话
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(1.5))
+            guard let self, self.sessionState == .finished else { return }
+            self.advanceSession(countCompleted: true)
+            self.start()
+        }
+    }
+
+    // MARK: - 会话循环
+
+    /// 计算并切换到下一个会话类型，可选是否计入完成数
+    func advanceSession(countCompleted: Bool) {
+        if countCompleted && currentSessionType == .focus {
+            sessionCount += 1
+        }
+        // 循环规则：每4个专注后是长休息，其他是短休息
+        let nextType: SessionType
+        if currentSessionType == .focus {
+            nextType = (sessionCount % 4 == 0 && sessionCount > 0) ? .longBreak : .shortBreak
+        } else {
+            nextType = .focus
+        }
+        currentSessionType = nextType
+        totalSeconds = nextType.defaultDuration
+        remainingSeconds = totalSeconds
     }
 
     private func scheduleNotification() {

@@ -277,3 +277,81 @@ final class TimerEngineTests: XCTestCase {
         XCTAssertEqual(engine.sessionState, .finished)
     }
 }
+
+// MARK: - SessionCycleTests
+
+@MainActor
+final class SessionCycleTests: XCTestCase {
+
+    // 测试 focus → shortBreak → focus 基本循环
+    func testFocusToShortBreakToFocus() {
+        let engine = TimerEngine(notificationCenter: MockNotificationCenter())
+        XCTAssertEqual(engine.currentSessionType, .focus)
+        XCTAssertEqual(engine.sessionCount, 0)
+
+        // 第1次专注完成 → 短休息
+        engine.advanceSession(countCompleted: true)
+        XCTAssertEqual(engine.currentSessionType, .shortBreak)
+        XCTAssertEqual(engine.sessionCount, 1)
+        XCTAssertEqual(engine.totalSeconds, SessionType.shortBreak.defaultDuration)
+
+        // 短休息完成 → 专注
+        engine.advanceSession(countCompleted: true)
+        XCTAssertEqual(engine.currentSessionType, .focus)
+        XCTAssertEqual(engine.sessionCount, 1) // 短休息不增加 sessionCount
+    }
+
+    // 测试第4个番茄后进入长休息
+    func testLongBreakAfterFourPomodoros() {
+        let engine = TimerEngine(notificationCenter: MockNotificationCenter())
+
+        // 完成 4 次专注（专注 → 短休 → 专注 → 短休 → 专注 → 短休 → 专注 → 长休）
+        for i in 1...4 {
+            XCTAssertEqual(engine.currentSessionType, .focus, "第\(i)次应为专注")
+            engine.advanceSession(countCompleted: true)
+            if i < 4 {
+                XCTAssertEqual(engine.currentSessionType, .shortBreak, "第\(i)次专注后应为短休息")
+                engine.advanceSession(countCompleted: false) // 短休息结束不计数
+            }
+        }
+
+        // 第4次专注后应进入长休息
+        XCTAssertEqual(engine.sessionCount, 4)
+        XCTAssertEqual(engine.currentSessionType, .longBreak)
+        XCTAssertEqual(engine.totalSeconds, SessionType.longBreak.defaultDuration)
+    }
+
+    // 测试 skip() 不增加 sessionCount
+    func testSkipDoesNotIncrementSessionCount() {
+        let engine = TimerEngine(notificationCenter: MockNotificationCenter())
+        engine.start()
+        let countBefore = engine.sessionCount
+        engine.skip()
+        XCTAssertEqual(engine.sessionCount, countBefore, "skip 不应增加 sessionCount")
+        XCTAssertEqual(engine.sessionState, .idle, "skip 后状态应为 idle")
+        XCTAssertEqual(engine.currentSessionType, .shortBreak, "focus skip 后应切换为 shortBreak")
+    }
+
+    // 测试 advanceSession(countCompleted: true) 增加 sessionCount（仅专注时）
+    func testAdvanceSessionCountCompletedTrue() {
+        let engine = TimerEngine(notificationCenter: MockNotificationCenter())
+        XCTAssertEqual(engine.sessionCount, 0)
+        engine.advanceSession(countCompleted: true)
+        XCTAssertEqual(engine.sessionCount, 1)
+    }
+
+    // 测试 advanceSession(countCompleted: false) 不增加 sessionCount
+    func testAdvanceSessionCountCompletedFalse() {
+        let engine = TimerEngine(notificationCenter: MockNotificationCenter())
+        XCTAssertEqual(engine.sessionCount, 0)
+        engine.advanceSession(countCompleted: false)
+        XCTAssertEqual(engine.sessionCount, 0)
+    }
+
+    // 测试 defaultDuration 正确性
+    func testSessionTypeDefaultDuration() {
+        XCTAssertEqual(SessionType.focus.defaultDuration, 25 * 60)
+        XCTAssertEqual(SessionType.shortBreak.defaultDuration, 5 * 60)
+        XCTAssertEqual(SessionType.longBreak.defaultDuration, 15 * 60)
+    }
+}
