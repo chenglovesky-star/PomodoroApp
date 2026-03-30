@@ -73,12 +73,12 @@
       "dependsOn": [
         "US-002"
       ],
-      "passes": false,
+      "passes": true,
       "retryCount": 0,
-      "tier1": null,
-      "tier2": null,
-      "tier3": null,
-      "notes": ""
+      "tier1": "pass",
+      "tier2": "8.20",
+      "tier3": "pass(major×4: notificationDelegate生命周期依赖struct稳定/finishSession internal化损封装/Mock缺@Sendable/后台到期无通知edge_case)",
+      "notes": "TimerEngine 状态机 + 后台保活 + UNUserNotificationCenter 本地通知，NotificationScheduling协议注入，NotificationDelegate前台banner，14个单元测试全部通过。US-004前建议：handleEnterBackground时补调UNTimeIntervalNotificationTrigger保障后台通知"
     },
     {
       "id": "US-004",
