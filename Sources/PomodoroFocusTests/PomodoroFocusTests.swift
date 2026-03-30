@@ -191,7 +191,10 @@ final class TimerEngineTests: XCTestCase {
         engine.pause()
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
-        XCTAssertEqual(engine.remainingSeconds, 10)
+        // D1 修复：reset() 重置为 focus 默认时长（25*60）
+        XCTAssertEqual(engine.remainingSeconds, SessionType.focus.defaultDuration)
+        XCTAssertEqual(engine.currentSessionType, .focus)
+        XCTAssertEqual(engine.sessionCount, 0)
         // 验证 reset 同时清除 pending 和 delivered 通知
         XCTAssertTrue(mock.removedPendingIdentifiers.contains("focus-complete"))
         XCTAssertTrue(mock.removedDeliveredIdentifiers.contains("focus-complete"))
@@ -202,7 +205,8 @@ final class TimerEngineTests: XCTestCase {
         engine.start()
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
-        XCTAssertEqual(engine.remainingSeconds, 10)
+        // D1 修复：reset() 重置为 focus 默认时长（25*60）
+        XCTAssertEqual(engine.remainingSeconds, SessionType.focus.defaultDuration)
     }
 
     func testTimerEngineBackgroundForegroundReset() {
@@ -213,7 +217,8 @@ final class TimerEngineTests: XCTestCase {
         XCTAssertEqual(engine.sessionState, .running)
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
-        XCTAssertEqual(engine.remainingSeconds, 100)
+        // D1 修复：reset() 重置为 focus 默认时长（25*60）
+        XCTAssertEqual(engine.remainingSeconds, SessionType.focus.defaultDuration)
     }
 
     func testTimerEngineHandleEnterBackgroundOnlyWhenRunning() {
@@ -255,7 +260,8 @@ final class TimerEngineTests: XCTestCase {
         // 通过 reset() 验证 finished 可以被重置
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
-        XCTAssertEqual(engine.remainingSeconds, 10)
+        // D1 修复：reset() 重置为 focus 默认时长（25*60）
+        XCTAssertEqual(engine.remainingSeconds, SessionType.focus.defaultDuration)
 
         // 验证从 finished 无法 start（需先 reset）
         engine.start() // -> running

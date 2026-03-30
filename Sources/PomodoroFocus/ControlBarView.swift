@@ -10,11 +10,11 @@ struct ControlBarView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // 番茄计数（显示当前第几个番茄）
-            Text("第 \(timerEngine.sessionCount + 1) 个番茄")
+            // 番茄计数（根据会话类型显示不同文案）
+            Text(sessionCountLabel)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .accessibilityLabel("第 \(timerEngine.sessionCount + 1) 个番茄")
+                .accessibilityLabel(sessionCountLabel)
 
             HStack(spacing: 32) {
                 // 重置按钮
@@ -56,6 +56,17 @@ struct ControlBarView: View {
     }
 
     // MARK: - 计算属性
+
+    private var sessionCountLabel: String {
+        switch timerEngine.currentSessionType {
+        case .focus:
+            return "第 \(timerEngine.sessionCount + 1) 个番茄"
+        case .shortBreak:
+            return "短休息 · 第 \(timerEngine.sessionCount) 个番茄完成"
+        case .longBreak:
+            return "长休息 · 已完成 \(timerEngine.sessionCount) 个番茄"
+        }
+    }
 
     private var playPauseIcon: String {
         switch timerEngine.sessionState {

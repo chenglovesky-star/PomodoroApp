@@ -76,6 +76,9 @@ final class TimerEngine: ObservableObject {
     func reset() {
         timer?.cancel()
         sessionState = .idle
+        currentSessionType = .focus
+        sessionCount = 0
+        totalSeconds = SessionType.focus.defaultDuration
         remainingSeconds = totalSeconds
         backgroundEntryDate = nil
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["focus-complete"])
@@ -145,6 +148,7 @@ final class TimerEngine: ObservableObject {
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(1.5))
             guard let self, self.sessionState == .finished else { return }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()  // 会话切换触觉反馈
             self.advanceSession(countCompleted: true)
             self.start()
         }
