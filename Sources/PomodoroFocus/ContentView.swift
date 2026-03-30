@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 // MARK: - ContentView
 
@@ -47,6 +48,7 @@ struct ContentView: View {
 @MainActor
 struct HomeTab: View {
     @State private var selectedTag: Tag? = nil
+    @Query private var tags: [Tag]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -66,6 +68,11 @@ struct HomeTab: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
+        .onChange(of: tags) { _, newTags in
+            if let selected = selectedTag, !newTags.contains(where: { $0.id == selected.id }) {
+                selectedTag = nil
+            }
+        }
     }
 }
 

@@ -7,8 +7,9 @@ extension Color {
     /// 从 #RRGGBB 格式的十六进制字符串初始化颜色
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        guard hex.count == 6 else { self = .gray; return }
         var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
+        guard Scanner(string: hex).scanHexInt64(&int) else { self = .gray; return }
         let r = Double((int >> 16) & 0xFF) / 255
         let g = Double((int >> 8) & 0xFF) / 255
         let b = Double(int & 0xFF) / 255
@@ -36,6 +37,13 @@ struct TagPickerView: View {
             HStack(spacing: 10) {
                 // 「无标签」选项
                 noTagButton
+
+                // 空标签提示（仅当无标签时显示）
+                if tags.isEmpty {
+                    Text("前往设置创建标签")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 // 动态标签列表
                 ForEach(tags) { tag in

@@ -69,7 +69,8 @@ struct CircularTimerView: View {
                 // 中心时间文字
                 VStack(spacing: 4) {
                     Text(timeString)
-                        .font(.system(size: 52, weight: .bold, design: .monospaced))
+                        .font(.system(.largeTitle, design: .monospaced).bold())
+                        .minimumScaleFactor(0.5)
                         .foregroundStyle(.primary)
                         .accessibilityLabel("剩余时间：\(timeString)")
                         .accessibilityIdentifier("timerLabel")
