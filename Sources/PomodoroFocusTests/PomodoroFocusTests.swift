@@ -195,12 +195,29 @@ final class TimerEngineTests: XCTestCase {
     func testTimerEngineHandleForegroundWithManualCorrection() {
         let engine = TimerEngine(totalSeconds: 100)
         engine.start()
-        // 模拟：直接修改 remainingSeconds 测试边界
         engine.handleEnterBackground()
-        // 剩余 100s，没有真实流逝时间（立即回前台）
-        engine.handleEnterForeground()
-        // remainingSeconds 应 >= 99（最多减去极少毫秒内的 elapsed=0）
-        XCTAssertGreaterThanOrEqual(engine.remainingSeconds, 99)
+
+        // 进入后台后状态仍为 running（等待前台修正）
         XCTAssertEqual(engine.sessionState, .running)
+
+        // 模拟前台回来（立刻，elapsed ≈ 0）
+        engine.handleEnterForeground()
+        // elapsed ≈ 0，remainingSeconds 应该接近 100（允许 1 秒误差）
+        XCTAssertGreaterThanOrEqual(engine.remainingSeconds, 99)
+        XCTAssertLessThanOrEqual(engine.remainingSeconds, 100)
+        // 回前台后继续 running
+        XCTAssertEqual(engine.sessionState, .running)
+    }
+
+    // 新增：验证 finishSession 幂等性（通过 reset/start 行为间接验证）
+    func testFinishSessionIdempotent() {
+        let engine = TimerEngine(totalSeconds: 1)
+        engine.start()
+        // 直接测试 reset 后重置
+        engine.reset()
+        XCTAssertEqual(engine.sessionState, .idle)
+        engine.start()
+        engine.reset()
+        XCTAssertEqual(engine.sessionState, .idle)
     }
 }

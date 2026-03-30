@@ -70,7 +70,7 @@ final class TimerEngine: ObservableObject {
 
     /// 进入后台时调用：停止 timer，记录进入时刻
     func handleEnterBackground() {
-        guard sessionState == .running else { return }
+        guard sessionState == .running, backgroundEntryDate == nil else { return }
         backgroundEntryDate = Date()
         timer?.cancel()
     }
@@ -111,6 +111,7 @@ final class TimerEngine: ObservableObject {
     }
 
     private func finishSession() {
+        guard sessionState != .finished else { return }  // 幂等保护
         timer?.cancel()
         sessionState = .finished
         scheduleNotification()
