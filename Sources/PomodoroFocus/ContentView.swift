@@ -20,7 +20,7 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
-            case .inactive, .background:
+            case .background:
                 timerEngine.handleEnterBackground()
             case .active:
                 timerEngine.handleEnterForeground()
