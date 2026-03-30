@@ -6,6 +6,9 @@ struct PomodoroFocusApp: App {
     /// App 级状态，通过 .environment 注入到 View 层（方案B）
     private let appState = AppState()
 
+    /// 计时器引擎，通过 .environmentObject 注入到 View 层
+    @StateObject private var timerEngine = TimerEngine()
+
     let container: ModelContainer
 
     init() {
@@ -66,7 +69,10 @@ struct PomodoroFocusApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .environmentObject(timerEngine)
                 .task {
+                    // 请求通知权限（US-003）
+                    timerEngine.requestNotificationPermission()
                     // 在 body（MainActor 上下文）中安全地更新 @Observable AppState
                     if let errorKind = PomodoroFocusApp.pendingStorageError {
                         switch errorKind {

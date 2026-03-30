@@ -10,6 +10,7 @@
 		2C2C2F25D13B9A6617C364E7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 58B5F37B8D6480780207B5D8 /* PrivacyInfo.xcprivacy */; };
 		3D855089BD953AA1B452700D /* PomodoroFocusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801BF526A09F613D189C92C9 /* PomodoroFocusTests.swift */; };
 		84E4FE17F3212D249A3B1C5F /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7D7C3810B05D74F364BFD2 /* AppState.swift */; };
+		9F160EDEE343FA0C0781A4DA /* TimerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507D2236CA9252D91B6ED368 /* TimerEngine.swift */; };
 		A4D72677CE4779EC7E8794A6 /* PomodoroFocusUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6247D2F85DB9392C3EF5618 /* PomodoroFocusUITests.swift */; };
 		B3C73501017A5A7584B2CBF3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289411F1834B581F46E12765 /* ContentView.swift */; };
 		C145B5713D74945B16538445 /* PomodoroFocusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5E63C816DB15696E322169 /* PomodoroFocusApp.swift */; };
@@ -39,6 +40,7 @@
 		1FFE494F72F2ACEFE3A1ED75 /* PomodoroFocusTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PomodoroFocusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		289411F1834B581F46E12765 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		37F968691ED66E486630A7A5 /* PomodoroFocus.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PomodoroFocus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		507D2236CA9252D91B6ED368 /* TimerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerEngine.swift; sourceTree = "<group>"; };
 		58B5F37B8D6480780207B5D8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		801BF526A09F613D189C92C9 /* PomodoroFocusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroFocusTests.swift; sourceTree = "<group>"; };
 		8ABAEC30627FC95623A8DE6A /* PlaceholderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderModels.swift; sourceTree = "<group>"; };
@@ -55,6 +57,7 @@
 				8ABAEC30627FC95623A8DE6A /* PlaceholderModels.swift */,
 				0D5E63C816DB15696E322169 /* PomodoroFocusApp.swift */,
 				58B5F37B8D6480780207B5D8 /* PrivacyInfo.xcprivacy */,
+				507D2236CA9252D91B6ED368 /* TimerEngine.swift */,
 			);
 			name = PomodoroFocus;
 			path = Sources/PomodoroFocus;
@@ -218,6 +221,7 @@
 				B3C73501017A5A7584B2CBF3 /* ContentView.swift in Sources */,
 				EDA41EC550969067A45DCAA9 /* PlaceholderModels.swift in Sources */,
 				C145B5713D74945B16538445 /* PomodoroFocusApp.swift in Sources */,
+				9F160EDEE343FA0C0781A4DA /* TimerEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,6 +436,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "专注完成时发送提醒通知";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -470,6 +475,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "专注完成时发送提醒通知";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (

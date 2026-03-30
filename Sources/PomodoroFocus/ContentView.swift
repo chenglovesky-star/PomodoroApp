@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @EnvironmentObject private var timerEngine: TimerEngine
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,6 +17,16 @@ struct ContentView: View {
 
             // 主内容区域（US-004 中替换为完整主界面）
             MainPlaceholderView()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .background:
+                timerEngine.handleEnterBackground()
+            case .active:
+                timerEngine.handleEnterForeground()
+            default:
+                break
+            }
         }
     }
 }
@@ -77,4 +89,5 @@ struct MainPlaceholderView: View {
 #Preview {
     ContentView()
         .environment(AppState())
+        .environmentObject(TimerEngine())
 }

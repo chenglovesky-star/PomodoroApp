@@ -102,3 +102,105 @@ final class PomodoroFocusTests: XCTestCase {
         XCTAssertNotNil(c)
     }
 }
+
+// MARK: - TimerEngine Tests
+
+@MainActor
+final class TimerEngineTests: XCTestCase {
+
+    func testTimerEngineInitialState() {
+        let engine = TimerEngine(totalSeconds: 10)
+        XCTAssertEqual(engine.sessionState, .idle)
+        XCTAssertEqual(engine.remainingSeconds, 10)
+        XCTAssertEqual(engine.totalSeconds, 10)
+    }
+
+    func testTimerEngineStart() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        XCTAssertEqual(engine.sessionState, .running)
+    }
+
+    func testTimerEngineStartIdempotent() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        engine.start() // 重复调用不应改变状态
+        XCTAssertEqual(engine.sessionState, .running)
+    }
+
+    func testTimerEnginePause() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        engine.pause()
+        XCTAssertEqual(engine.sessionState, .paused)
+        XCTAssertEqual(engine.remainingSeconds, 10) // 刚暂停，时间未变
+    }
+
+    func testTimerEnginePauseOnlyFromRunning() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.pause() // idle 状态不应变为 paused
+        XCTAssertEqual(engine.sessionState, .idle)
+    }
+
+    func testTimerEngineResume() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        engine.pause()
+        engine.resume()
+        XCTAssertEqual(engine.sessionState, .running)
+    }
+
+    func testTimerEngineResumeOnlyFromPaused() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        engine.resume() // running 状态调用 resume 无效
+        XCTAssertEqual(engine.sessionState, .running)
+    }
+
+    func testTimerEngineReset() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        engine.pause()
+        engine.reset()
+        XCTAssertEqual(engine.sessionState, .idle)
+        XCTAssertEqual(engine.remainingSeconds, 10)
+    }
+
+    func testTimerEngineResetFromRunning() {
+        let engine = TimerEngine(totalSeconds: 10)
+        engine.start()
+        engine.reset()
+        XCTAssertEqual(engine.sessionState, .idle)
+        XCTAssertEqual(engine.remainingSeconds, 10)
+    }
+
+    func testTimerEngineBackgroundForegroundReset() {
+        let engine = TimerEngine(totalSeconds: 100)
+        engine.start()
+        engine.handleEnterBackground()
+        // 进入后台后状态仍为 running（等待前台修正）
+        XCTAssertEqual(engine.sessionState, .running)
+        engine.reset()
+        XCTAssertEqual(engine.sessionState, .idle)
+        XCTAssertEqual(engine.remainingSeconds, 100)
+    }
+
+    func testTimerEngineHandleEnterBackgroundOnlyWhenRunning() {
+        let engine = TimerEngine(totalSeconds: 100)
+        // idle 状态进入后台无效
+        engine.handleEnterBackground()
+        XCTAssertEqual(engine.sessionState, .idle)
+    }
+
+    func testTimerEngineHandleForegroundWithManualCorrection() {
+        let engine = TimerEngine(totalSeconds: 100)
+        engine.start()
+        // 模拟：直接修改 remainingSeconds 测试边界
+        engine.handleEnterBackground()
+        // 剩余 100s，没有真实流逝时间（立即回前台）
+        engine.handleEnterForeground()
+        // remainingSeconds 应 >= 99（最多减去极少毫秒内的 elapsed=0）
+        XCTAssertGreaterThanOrEqual(engine.remainingSeconds, 99)
+        XCTAssertEqual(engine.sessionState, .running)
+    }
+}

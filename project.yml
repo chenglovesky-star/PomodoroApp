@@ -27,6 +27,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSUserNotificationsUsageDescription: 专注完成时发送提醒通知
         SWIFT_EMIT_LOC_STRINGS: YES
         TARGETED_DEVICE_FAMILY: "1"
         PRIVACY_MANIFEST: Sources/PomodoroFocus/PrivacyInfo.xcprivacy
