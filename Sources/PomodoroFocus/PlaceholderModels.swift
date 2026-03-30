@@ -19,9 +19,8 @@ final class FocusSession {
         isCompleted: Bool = false,
         tag: Tag? = nil
     ) {
-        assert(duration > 0, "duration must be > 0")
         self.id = UUID()
-        self.duration = max(1, duration)   // 生产环境静默保护
+        self.duration = max(1, duration)   // 最小 1 秒，由 UI 层保证合法输入
         self.completedAt = completedAt
         self.isCompleted = isCompleted
         self.tag = tag
@@ -43,10 +42,8 @@ final class Tag {
         name: String,
         colorHex: String = "#FF6B6B"
     ) {
-        let trimmed = name.trimmingCharacters(in: .whitespaces)
-        assert(!trimmed.isEmpty, "Tag name cannot be empty")
         self.id = UUID()
-        self.name = trimmed.isEmpty ? "未命名" : trimmed  // 生产环境静默保护
+        self.name = name.trimmingCharacters(in: .whitespaces).isEmpty ? "未命名" : name.trimmingCharacters(in: .whitespaces)
         self.colorHex = colorHex
         self.sessions = []
     }
@@ -54,8 +51,10 @@ final class Tag {
 
 // MARK: - DailyRecord
 
-/// 每日专注汇总
-/// date 存当天零点（Calendar.current.startOfDay），确保 @Attribute(.unique) 语义正确
+/// 每日专注汇总（反范式化缓存，由 TimerEngine 在会话结束时更新）
+/// - date：当天零点，@Attribute(.unique) 确保每天只有一条记录
+/// - totalFocusSeconds / sessionsCount：由 TimerEngine.completeSession() 累加写入
+/// - 设计原因：避免每次统计时全量查询 FocusSession，提升图表渲染性能
 @Model
 final class DailyRecord {
     @Attribute(.unique) var date: Date
@@ -68,9 +67,18 @@ final class DailyRecord {
         sessionsCount: Int = 0
     ) {
         // 强制截断到当天零点，保证唯一性约束按"天"生效
-        self.date = Calendar.current.startOfDay(for: date)
+        // 使用明确绑定时区的 Calendar，避免系统时区变更导致的日期漂移
+        self.date = DailyRecord.startOfDay(for: date)
         self.totalFocusSeconds = max(0, totalFocusSeconds)
         self.sessionsCount = max(0, sessionsCount)
+    }
+
+    /// 返回指定日期当天的零点时刻
+    /// 明确绑定 TimeZone.current，避免全局 Calendar.current 因系统时区切换产生漂移
+    private static func startOfDay(for date: Date) -> Date {
+        var cal = Calendar.current
+        cal.timeZone = TimeZone.current  // 明确绑定，不依赖全局 Calendar.current
+        return cal.startOfDay(for: date)
     }
 }
 
