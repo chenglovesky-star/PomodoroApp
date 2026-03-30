@@ -103,33 +103,60 @@ final class PomodoroFocusTests: XCTestCase {
     }
 }
 
+// MARK: - MockNotificationCenter
+
+final class MockNotificationCenter: NotificationScheduling {
+    var addedRequests: [UNNotificationRequest] = []
+    var removedPendingIdentifiers: [String] = []
+    var removedDeliveredIdentifiers: [String] = []
+    var authorizationRequested = false
+
+    func add(_ request: UNNotificationRequest, withCompletionHandler completionHandler: ((Error?) -> Void)?) {
+        addedRequests.append(request)
+        completionHandler?(nil)
+    }
+
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
+        removedPendingIdentifiers.append(contentsOf: identifiers)
+    }
+
+    func removeDeliveredNotifications(withIdentifiers identifiers: [String]) {
+        removedDeliveredIdentifiers.append(contentsOf: identifiers)
+    }
+
+    func requestAuthorization(options: UNAuthorizationOptions, completionHandler: @escaping (Bool, Error?) -> Void) {
+        authorizationRequested = true
+        completionHandler(true, nil)
+    }
+}
+
 // MARK: - TimerEngine Tests
 
 @MainActor
 final class TimerEngineTests: XCTestCase {
 
     func testTimerEngineInitialState() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         XCTAssertEqual(engine.sessionState, .idle)
         XCTAssertEqual(engine.remainingSeconds, 10)
         XCTAssertEqual(engine.totalSeconds, 10)
     }
 
     func testTimerEngineStart() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.start()
         XCTAssertEqual(engine.sessionState, .running)
     }
 
     func testTimerEngineStartIdempotent() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.start() // 重复调用不应改变状态
         XCTAssertEqual(engine.sessionState, .running)
     }
 
     func testTimerEnginePause() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.pause()
         XCTAssertEqual(engine.sessionState, .paused)
@@ -137,13 +164,13 @@ final class TimerEngineTests: XCTestCase {
     }
 
     func testTimerEnginePauseOnlyFromRunning() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.pause() // idle 状态不应变为 paused
         XCTAssertEqual(engine.sessionState, .idle)
     }
 
     func testTimerEngineResume() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.pause()
         engine.resume()
@@ -151,23 +178,27 @@ final class TimerEngineTests: XCTestCase {
     }
 
     func testTimerEngineResumeOnlyFromPaused() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.resume() // running 状态调用 resume 无效
         XCTAssertEqual(engine.sessionState, .running)
     }
 
     func testTimerEngineReset() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let mock = MockNotificationCenter()
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: mock)
         engine.start()
         engine.pause()
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
         XCTAssertEqual(engine.remainingSeconds, 10)
+        // 验证 reset 同时清除 pending 和 delivered 通知
+        XCTAssertTrue(mock.removedPendingIdentifiers.contains("focus-complete"))
+        XCTAssertTrue(mock.removedDeliveredIdentifiers.contains("focus-complete"))
     }
 
     func testTimerEngineResetFromRunning() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
@@ -175,7 +206,7 @@ final class TimerEngineTests: XCTestCase {
     }
 
     func testTimerEngineBackgroundForegroundReset() {
-        let engine = TimerEngine(totalSeconds: 100)
+        let engine = TimerEngine(totalSeconds: 100, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.handleEnterBackground()
         // 进入后台后状态仍为 running（等待前台修正）
@@ -186,14 +217,14 @@ final class TimerEngineTests: XCTestCase {
     }
 
     func testTimerEngineHandleEnterBackgroundOnlyWhenRunning() {
-        let engine = TimerEngine(totalSeconds: 100)
+        let engine = TimerEngine(totalSeconds: 100, notificationCenter: MockNotificationCenter())
         // idle 状态进入后台无效
         engine.handleEnterBackground()
         XCTAssertEqual(engine.sessionState, .idle)
     }
 
     func testTimerEngineHandleForegroundWithManualCorrection() {
-        let engine = TimerEngine(totalSeconds: 100)
+        let engine = TimerEngine(totalSeconds: 100, notificationCenter: MockNotificationCenter())
         engine.start()
         engine.handleEnterBackground()
 
@@ -211,15 +242,16 @@ final class TimerEngineTests: XCTestCase {
 
     // 验证 finishSession 幂等性：finished 状态可被 reset，reset 后可重新 start
     func testFinishSessionIdempotent() {
-        let engine = TimerEngine(totalSeconds: 10)
+        let mock = MockNotificationCenter()
+        let engine = TimerEngine(totalSeconds: 10, notificationCenter: mock)
 
-        // 让引擎到达 finished 状态
-        // 方法：手动将 remainingSeconds 归零后触发前台回调
-        engine.start()
+        // 直接调用 finishSession 让引擎进入 finished 状态
+        engine.finishSession()
+        XCTAssertEqual(engine.sessionState, .finished)
+        // 再次调用应为幂等（不崩溃，状态不变）
+        engine.finishSession()
+        XCTAssertEqual(engine.sessionState, .finished)
 
-        // 模拟：remainingSeconds 已为 0，handleEnterForeground 触发 finishSession
-        engine.handleEnterBackground()
-        // 直接测试 finished 后再次调用不会 crash 或改变状态
         // 通过 reset() 验证 finished 可以被重置
         engine.reset()
         XCTAssertEqual(engine.sessionState, .idle)
@@ -235,17 +267,13 @@ final class TimerEngineTests: XCTestCase {
 
     // 验证 finished 状态下调用 start 无效
     func testStartFromFinishedIsNoOp() {
-        let engine = TimerEngine(totalSeconds: 1)
+        let mock = MockNotificationCenter()
+        let engine = TimerEngine(totalSeconds: 1, notificationCenter: mock)
+        // 直接调用 finishSession 让引擎进入 finished 状态
+        engine.finishSession()
+        XCTAssertEqual(engine.sessionState, .finished)
+        // finished 状态下调用 start 无效（guard sessionState == .idle）
         engine.start()
-        // 注意：不能直接让 timer fire（需要真实时间），
-        // 改用验证状态机约束：finished 时 start 无效
-        // 通过手动设置 sessionState（需要访问内部）或测试行为
-        // 实际测试：从 idle start，再 reset，验证循环
-        engine.reset()
-        XCTAssertEqual(engine.sessionState, .idle)
-        engine.start()
-        engine.pause()
-        engine.start() // 从 paused 调用 start 无效（guard sessionState == .idle）
-        XCTAssertEqual(engine.sessionState, .paused)
+        XCTAssertEqual(engine.sessionState, .finished)
     }
 }

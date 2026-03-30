@@ -2,6 +2,18 @@ import Foundation
 import Combine
 import UserNotifications
 
+// MARK: - NotificationScheduling Protocol
+
+/// 通知调度协议，便于测试时注入 mock
+protocol NotificationScheduling {
+    func add(_ request: UNNotificationRequest, withCompletionHandler completionHandler: (@Sendable (Error?) -> Void)?)
+    func removePendingNotificationRequests(withIdentifiers identifiers: [String])
+    func removeDeliveredNotifications(withIdentifiers identifiers: [String])
+    func requestAuthorization(options: UNAuthorizationOptions, completionHandler: @escaping @Sendable (Bool, Error?) -> Void)
+}
+
+extension UNUserNotificationCenter: NotificationScheduling {}
+
 // MARK: - TimerEngine
 
 /// 番茄计时器引擎
@@ -25,13 +37,13 @@ final class TimerEngine: ObservableObject {
 
     private var timer: AnyCancellable?
     private var backgroundEntryDate: Date?
-    private let notificationCenter: UNUserNotificationCenter
+    private let notificationCenter: any NotificationScheduling
 
     // MARK: - Init（依赖注入 notificationCenter，方便测试时 mock）
 
     init(
         totalSeconds: Int = 25 * 60,
-        notificationCenter: UNUserNotificationCenter = .current()
+        notificationCenter: any NotificationScheduling = UNUserNotificationCenter.current()
     ) {
         self.totalSeconds = totalSeconds
         self.remainingSeconds = totalSeconds
@@ -64,6 +76,7 @@ final class TimerEngine: ObservableObject {
         remainingSeconds = totalSeconds
         backgroundEntryDate = nil
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["focus-complete"])
+        notificationCenter.removeDeliveredNotifications(withIdentifiers: ["focus-complete"])
     }
 
     // MARK: - 后台保活
@@ -110,7 +123,7 @@ final class TimerEngine: ObservableObject {
             }
     }
 
-    private func finishSession() {
+    func finishSession() {
         guard sessionState != .finished else { return }  // 幂等保护
         timer?.cancel()
         sessionState = .finished
@@ -128,6 +141,6 @@ final class TimerEngine: ObservableObject {
             content: content,
             trigger: nil   // 立即发送
         )
-        notificationCenter.add(request)
+        notificationCenter.add(request, withCompletionHandler: nil)
     }
 }

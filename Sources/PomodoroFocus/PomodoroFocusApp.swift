@@ -1,5 +1,19 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
+
+// MARK: - NotificationDelegate
+
+/// 前台通知代理：确保 App 在前台时通知 banner/声音正常展示
+final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .badge])
+    }
+}
 
 @main
 struct PomodoroFocusApp: App {
@@ -9,9 +23,15 @@ struct PomodoroFocusApp: App {
     /// 计时器引擎，通过 .environmentObject 注入到 View 层
     @StateObject private var timerEngine = TimerEngine()
 
+    /// 通知代理（必须强引用持有，否则会被释放）
+    private let notificationDelegate = NotificationDelegate()
+
     let container: ModelContainer
 
     init() {
+        // 设置前台通知代理
+        UNUserNotificationCenter.current().delegate = notificationDelegate
+
         let schema = Schema([FocusSession.self, Tag.self, DailyRecord.self])
         let isUITesting = CommandLine.arguments.contains("--uitesting")
 
