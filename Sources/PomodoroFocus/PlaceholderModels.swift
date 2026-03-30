@@ -1,23 +1,22 @@
 import Foundation
 import SwiftData
 
-/// 占位 Model：FocusSession（US-002 中将完整实现）
+/// FocusSession：记录一次专注会话
 @Model
 final class FocusSession {
     var id: UUID
-    var duration: Int          // 秒
+    var duration: Int           // 秒
     var completedAt: Date
     var isCompleted: Bool
     var tag: Tag?
 
     init(
-        id: UUID = UUID(),
-        duration: Int = 1500,
+        duration: Int,
         completedAt: Date = Date(),
         isCompleted: Bool = false,
         tag: Tag? = nil
     ) {
-        self.id = id
+        self.id = UUID()
         self.duration = duration
         self.completedAt = completedAt
         self.isCompleted = isCompleted
@@ -25,7 +24,7 @@ final class FocusSession {
     }
 }
 
-/// 占位 Model：Tag（US-002 中将完整实现）
+/// Tag：专注标签分类
 @Model
 final class Tag {
     var id: UUID
@@ -35,26 +34,25 @@ final class Tag {
     var sessions: [FocusSession]
 
     init(
-        id: UUID = UUID(),
-        name: String = "",
+        name: String,
         colorHex: String = "#FF6B6B"
     ) {
-        self.id = id
+        self.id = UUID()
         self.name = name
         self.colorHex = colorHex
         self.sessions = []
     }
 }
 
-/// 占位 Model：DailyRecord（US-002 中将完整实现）
+/// DailyRecord：每日汇总记录（date 唯一约束）
 @Model
 final class DailyRecord {
-    var date: Date
+    @Attribute(.unique) var date: Date
     var totalFocusSeconds: Int
     var sessionsCount: Int
 
     init(
-        date: Date = Date(),
+        date: Date,
         totalFocusSeconds: Int = 0,
         sessionsCount: Int = 0
     ) {
