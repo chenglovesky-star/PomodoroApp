@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2729907950F425CF6BBEC0FA /* TagPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C27D54036DAAEA02B8E7BAB5 /* TagPickerView.swift */; };
 		2C2C2F25D13B9A6617C364E7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 58B5F37B8D6480780207B5D8 /* PrivacyInfo.xcprivacy */; };
 		3D855089BD953AA1B452700D /* PomodoroFocusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801BF526A09F613D189C92C9 /* PomodoroFocusTests.swift */; };
 		84E4FE17F3212D249A3B1C5F /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7D7C3810B05D74F364BFD2 /* AppState.swift */; };
@@ -14,6 +15,7 @@
 		A4D72677CE4779EC7E8794A6 /* PomodoroFocusUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6247D2F85DB9392C3EF5618 /* PomodoroFocusUITests.swift */; };
 		B3C73501017A5A7584B2CBF3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289411F1834B581F46E12765 /* ContentView.swift */; };
 		C145B5713D74945B16538445 /* PomodoroFocusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5E63C816DB15696E322169 /* PomodoroFocusApp.swift */; };
+		C2FAB99967C35F080247DD5E /* CircularTimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA5641B2A9BD2BBAD1E41A77 /* CircularTimerView.swift */; };
 		EDA41EC550969067A45DCAA9 /* PlaceholderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ABAEC30627FC95623A8DE6A /* PlaceholderModels.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,7 +46,9 @@
 		58B5F37B8D6480780207B5D8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		801BF526A09F613D189C92C9 /* PomodoroFocusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroFocusTests.swift; sourceTree = "<group>"; };
 		8ABAEC30627FC95623A8DE6A /* PlaceholderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderModels.swift; sourceTree = "<group>"; };
+		AA5641B2A9BD2BBAD1E41A77 /* CircularTimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularTimerView.swift; sourceTree = "<group>"; };
 		BB7D7C3810B05D74F364BFD2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		C27D54036DAAEA02B8E7BAB5 /* TagPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagPickerView.swift; sourceTree = "<group>"; };
 		C6247D2F85DB9392C3EF5618 /* PomodoroFocusUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroFocusUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -53,10 +57,12 @@
 			isa = PBXGroup;
 			children = (
 				BB7D7C3810B05D74F364BFD2 /* AppState.swift */,
+				AA5641B2A9BD2BBAD1E41A77 /* CircularTimerView.swift */,
 				289411F1834B581F46E12765 /* ContentView.swift */,
 				8ABAEC30627FC95623A8DE6A /* PlaceholderModels.swift */,
 				0D5E63C816DB15696E322169 /* PomodoroFocusApp.swift */,
 				58B5F37B8D6480780207B5D8 /* PrivacyInfo.xcprivacy */,
+				C27D54036DAAEA02B8E7BAB5 /* TagPickerView.swift */,
 				507D2236CA9252D91B6ED368 /* TimerEngine.swift */,
 			);
 			name = PomodoroFocus;
@@ -218,9 +224,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				84E4FE17F3212D249A3B1C5F /* AppState.swift in Sources */,
+				C2FAB99967C35F080247DD5E /* CircularTimerView.swift in Sources */,
 				B3C73501017A5A7584B2CBF3 /* ContentView.swift in Sources */,
 				EDA41EC550969067A45DCAA9 /* PlaceholderModels.swift in Sources */,
 				C145B5713D74945B16538445 /* PomodoroFocusApp.swift in Sources */,
+				2729907950F425CF6BBEC0FA /* TagPickerView.swift in Sources */,
 				9F160EDEE343FA0C0781A4DA /* TimerEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

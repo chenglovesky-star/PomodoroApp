@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - ContentView
+
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @EnvironmentObject private var timerEngine: TimerEngine
@@ -15,8 +17,16 @@ struct ContentView: View {
                 )
             }
 
-            // 主内容区域（US-004 中替换为完整主界面）
-            MainPlaceholderView()
+            // 主内容区域
+            NavigationStack {
+                TabView {
+                    HomeTab()
+                        .tabItem {
+                            Label("专注", systemImage: "timer")
+                        }
+                }
+                .navigationBarHidden(true)
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
@@ -30,6 +40,80 @@ struct ContentView: View {
         }
     }
 }
+
+// MARK: - HomeTab
+
+/// 主页 Tab：圆形计时器 + 标签选择器 + 占位控制栏
+@MainActor
+struct HomeTab: View {
+    @State private var selectedTag: Tag? = nil
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            // 圆形进度计时器
+            CircularTimerView()
+
+            Spacer()
+
+            // 标签选择器
+            TagPickerView(selectedTag: $selectedTag)
+                .accessibilityIdentifier("tagPicker")
+
+            // 占位控制栏（US-005 实现）
+            ControlBarPlaceholder()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+}
+
+// MARK: - ControlBarPlaceholder
+
+/// 控制栏占位（US-005 实现时替换）
+@MainActor
+struct ControlBarPlaceholder: View {
+    var body: some View {
+        HStack(spacing: 32) {
+            Spacer()
+
+            Button {
+                // TODO: US-005 实现
+            } label: {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityLabel("重置计时器")
+
+            Button {
+                // TODO: US-005 实现
+            } label: {
+                Image(systemName: "play.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(Color.accentColor)
+            }
+            .accessibilityLabel("开始专注")
+            .accessibilityIdentifier("startButton")
+
+            Button {
+                // TODO: US-005 实现
+            } label: {
+                Image(systemName: "forward.end.fill")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityLabel("跳过当前会话")
+
+            Spacer()
+        }
+        .padding(.vertical, 24)
+        .padding(.bottom, 16)
+    }
+}
+
+// MARK: - StorageErrorBanner
 
 /// 存储错误提示 Banner
 struct StorageErrorBanner: View {
@@ -60,31 +144,7 @@ struct StorageErrorBanner: View {
     }
 }
 
-/// 主界面占位（US-004 中替换）
-struct MainPlaceholderView: View {
-    var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            Image(systemName: "timer")
-                .font(.system(size: 80))
-                .foregroundStyle(.red)
-                .accessibilityHidden(true)
-
-            Text("PomodoroFocus")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-
-            Text("专注番茄工作法")
-                .font(.title3)
-                .foregroundStyle(.secondary)
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
-    }
-}
+// MARK: - Preview
 
 #Preview {
     ContentView()
