@@ -1,0 +1,59 @@
+name: PomodoroFocus
+options:
+  bundleIdPrefix: com.leicheng9
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+
+targets:
+  PomodoroFocus:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/PomodoroFocus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.leicheng9.PomodoroFocus
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        SWIFT_VERSION: "6.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+
+  PomodoroFocusTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Sources/PomodoroFocusTests
+    dependencies:
+      - target: PomodoroFocus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.leicheng9.PomodoroFocusTests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+
+  PomodoroFocusUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Sources/PomodoroFocusUITests
+    dependencies:
+      - target: PomodoroFocus
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.leicheng9.PomodoroFocusUITests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: ""
+        TEST_HOST: ""
+        SWIFT_VERSION: "6.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
